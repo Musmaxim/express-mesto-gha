@@ -2,19 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routerUser = require('./routes/users');
-
+const routerCards = require('./routes/cards');
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true
-});
-
-
-app.get ('/', (req,res) => {
-  res.send(`hello world`)
-})
+mongoose.connect('mongodb://localhost:27017/mestodb', { useNewUrlParser: true });
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -23,13 +16,8 @@ app.use((req, res, next) => {
   };
   next();
 });
-app.use('/users', routerUser)
 
-// mongoose.connect('mongodb://localhost:27017/mestodb', {
-//   useCreateIndex: true,
-//   useFindAndModify: false,
-// });
+app.use('/users', routerUser);
+app.use('/cards', routerCards);
 
-app.listen(PORT, () => {
-  console.log(`App listening ${PORT}`);
-});
+app.listen(PORT, () => {});
