@@ -1,29 +1,27 @@
 const Card = require('../models/card');
 
-module.exports.getCards = (req, res, next) => {
+module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
     .catch(() => {
       res.status(500).send({ message: 'Ошибка сервера' });
-    })
-    .catch(next);
+    });
 };
 
-module.exports.createCard = (req, res, next) => {
+module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const id = req.user._id;
-  Card.create({ name, link, id })
+  Card.create({ name, link, owner: id })
     .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err === 'ValidationError') {
         return res.status(400).send({ message: 'Ошибка валидации' });
       }
       return res.status(500).send({ message: 'Ошибка сервера' });
-    })
-    .catch(next);
+    });
 };
 
-module.exports.deleteCard = (req, res, next) => {
+module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.id)
     .orFail(() => { res.status(404).send({ message: 'Некорректный ID' }); })
     .then((Datacard) => res.status(200).send(Datacard))
@@ -33,11 +31,10 @@ module.exports.deleteCard = (req, res, next) => {
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };
 
-module.exports.likeCard = (req, res, next) => {
+module.exports.likeCard = (req, res) => {
   const id = req.user._id;
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -52,11 +49,10 @@ module.exports.likeCard = (req, res, next) => {
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };
 
-module.exports.dislikeCard = (req, res, next) => {
+module.exports.dislikeCard = (req, res) => {
   const id = req.user._id;
   Card.findByIdAndUpdate(
     req.params.cardId,
@@ -71,6 +67,5 @@ module.exports.dislikeCard = (req, res, next) => {
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }
-    })
-    .catch(next);
+    });
 };

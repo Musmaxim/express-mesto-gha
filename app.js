@@ -19,5 +19,8 @@ app.use((req, res, next) => {
 
 app.use('/users', routerUser);
 app.use('/cards', routerCards);
+app.use((req, res) => {
+  res.status(404).send({ message: 'Страница не найдена' });
+});
 
 app.listen(PORT, () => {});
