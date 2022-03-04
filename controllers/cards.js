@@ -23,11 +23,15 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.id)
-    .orFail(() => { res.status(404).send({ message: 'Некорректный ID' }); })
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((Datacard) => res.status(200).send(Datacard))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
+        res.status(400).send({ message: 'Некорректный ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Нет пользователя/карточки с переданным ID' });
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }
@@ -41,11 +45,15 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: id } },
     { new: true },
   )
-    .orFail(() => { res.status(404).send({ message: 'Некорректный ID' }); })
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((dataCard) => res.status(200).send({ data: dataCard }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
+        res.status(400).send({ message: 'Некорректный ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Нет пользователя/карточки с переданным ID' });
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }
@@ -59,11 +67,15 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: id } },
     { new: true },
   )
-    .orFail(() => { res.status(404).send({ message: 'Некорректный ID' }); })
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((dataCard) => res.status(200).send({ data: dataCard }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
+        res.status(400).send({ message: 'Некорректный ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Нет пользователя/карточки с переданным ID' });
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }

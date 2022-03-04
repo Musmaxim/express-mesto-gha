@@ -10,11 +10,15 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.id)
-    .orFail(() => { res.status(404).send({ message: 'Некорректный ID' }); })
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((user) => { res.status(200).send({ user }); })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Пользователь по указанному ID не найден' });
+        res.status(400).send({ message: 'Некорректный ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'Нет пользователя/карточки с переданным ID' });
       } else {
         res.status(500).send({ message: 'Ошибка сервера' });
       }
@@ -47,7 +51,7 @@ module.exports.updateUser = (req, res) => {
         return res.status(400).send({ message: 'Ошибка валидации' });
       }
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Пользователь с указанным ID не найден' });
+        return res.status(400).send({ message: 'Некорректный ID' });
       }
 
       return res.status(500).send({ message: 'Ошибка сервера' });
@@ -68,7 +72,7 @@ module.exports.updateAvatar = (req, res) => {
         return res.status(400).send({ message: 'Ошибка валидации' });
       }
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Пользователь с указанным ID не найден' });
+        return res.status(400).send({ message: 'Некорректный ID' });
       }
       return res.status(500).send({ message: 'Ошибка сервера' });
     });
