@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const { validateUser, validateLogin } = require('./middlewares/validations');
-const { NotFoundError } = require('./errors/NotFoundError');
+const NotFoundError = require('./errors/NotFoundError');
 const routerUser = require('./routes/users');
 const routerCards = require('./routes/cards');
 const {
