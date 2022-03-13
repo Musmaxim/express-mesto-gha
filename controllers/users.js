@@ -7,12 +7,10 @@ const ConflictError = require('../errors/ConflictError');
 const CastError = require('../errors/CastError');
 const AuthorizationError = require('../errors/AuthorizationError');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => { res.status(200).send({ users }); })
-    .catch((err) => {
-      res.status(500).send({ message: `Запрашиваемый ресурс не найден ${err}` });
-    });
+    .catch(next);
 };
 
 module.exports.getUserId = (req, res, next) => {
@@ -25,7 +23,7 @@ module.exports.getUserId = (req, res, next) => {
       } else if (err.message === 'NotFound') {
         next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };
@@ -48,11 +46,10 @@ module.exports.createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Указаны некорректные данные при создании пользователя'));
-      }
-      if (err.name === 'MongoError' || err.code === 11000) {
+      } else if (err.code === 11000) {
         next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };
@@ -73,7 +70,7 @@ module.exports.updateUser = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new CastError('Некорректный ID'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };
@@ -94,7 +91,7 @@ module.exports.updateAvatar = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new CastError('Некорректный ID'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };
@@ -109,7 +106,8 @@ module.exports.login = (req, res, next) => {
           maxAge: 604800,
           httpOnly: true,
           sameSite: true,
-        });
+        })
+        .send({ message: 'Авторизация прошла успешно' });
     })
     .catch(() => {
       next(new AuthorizationError('Неправильная почта или пароль'));
@@ -128,7 +126,7 @@ module.exports.getUser = (req, res, next) => {
       } else if (err.message === 'NotFound') {
         next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };

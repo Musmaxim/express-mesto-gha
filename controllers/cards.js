@@ -2,13 +2,12 @@ const Card = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
 const CastError = require('../errors/CastError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
-    .catch(() => {
-      res.status(500).send({ message: 'Ошибка сервера' });
-    });
+    .catch(next);
 };
 
 module.exports.createCard = (req, res, next) => {
@@ -20,26 +19,23 @@ module.exports.createCard = (req, res, next) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Указаны некорректные данные при создании карточки'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.id)
-    .orFail(() => {
-      throw new Error('NotFound');
-    })
-    .then((Datacard) => res.status(200).send(Datacard))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new CastError('Некорректный ID'));
-      } else if (err.message === 'NotFound') {
-        next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
-      } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+  const id = req.user._id;
+  Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => new NotFoundError('Карточка не найдена'))
+    .then((card) => {
+      if (!card.owner.equals(id)) {
+        next(new ForbiddenError('Нельзя удалить чужую карточку'));
       }
-    });
+      return card.remove()
+        .then(() => res.send({ message: 'Карточка удалена' }));
+    })
+    .catch(next);
 };
 
 module.exports.likeCard = (req, res, next) => {
@@ -59,7 +55,7 @@ module.exports.likeCard = (req, res, next) => {
       } else if (err.message === 'NotFound') {
         next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };
@@ -81,7 +77,7 @@ module.exports.dislikeCard = (req, res, next) => {
       } else if (err.message === 'NotFound') {
         next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
       } else {
-        res.status(500).send({ message: 'Ошибка сервера' });
+        next(err);
       }
     });
 };

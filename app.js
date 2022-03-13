@@ -1,5 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
 const { validateUser, validateLogin } = require('./middlewares/validations');
 const { NotFoundError } = require('./errors/NotFoundError');
@@ -12,6 +14,8 @@ const {
 
 const { PORT = 3000 } = process.env;
 const app = express();
+app.use(cookieParser());
+app.use(express.json());
 
 mongoose.connect('mongodb://localhost:27017/mestodb', { useNewUrlParser: true });
 
@@ -25,5 +29,7 @@ app.use('/cards', routerCards);
 app.use(() => {
   throw new NotFoundError('Страница не найдена');
 });
+
+app.use(errors());
 
 app.listen(PORT, () => {});
