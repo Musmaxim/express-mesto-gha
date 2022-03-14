@@ -30,7 +30,7 @@ module.exports.deleteCard = (req, res, next) => {
     .orFail(() => new NotFoundError('Карточка не найдена'))
     .then((card) => {
       if (!card.owner.equals(id)) {
-        next(new ForbiddenError('Нельзя удалить чужую карточку'));
+        return next(new ForbiddenError('Нельзя удалить чужую карточку'));
       }
       return card.remove()
         .then(() => res.send({ message: 'Карточка удалена' }));
@@ -45,9 +45,7 @@ module.exports.likeCard = (req, res, next) => {
     { $addToSet: { likes: id } },
     { new: true },
   )
-    .orFail(() => {
-      throw new Error('NotFound');
-    })
+    .orFail(() => new NotFoundError('Нет пользователя с переданным ID'))
     .then((dataCard) => res.status(200).send({ data: dataCard }))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -67,9 +65,7 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: id } },
     { new: true },
   )
-    .orFail(() => {
-      throw new Error('NotFound');
-    })
+    .orFail(() => new NotFoundError('Нет пользователя с переданным ID'))
     .then((dataCard) => res.status(200).send({ data: dataCard }))
     .catch((err) => {
       if (err.name === 'CastError') {

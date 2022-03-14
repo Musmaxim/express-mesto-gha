@@ -15,13 +15,11 @@ module.exports.getUsers = (req, res, next) => {
 
 module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.id)
-    .orFail(() => new NotFoundError('Запрашиваемый пользователь не найден'))
+    .orFail(() => new NotFoundError('Нет пользователя с переданным ID'))
     .then((user) => { res.status(200).send({ user }); })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new CastError('Некорректный ID'));
-      } else if (err.message === 'NotFound') {
-        next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
       } else {
         next(err);
       }
@@ -66,9 +64,6 @@ module.exports.updateUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Указаны некорректные данные при редактировании пользователя'));
-      }
-      if (err.name === 'CastError') {
-        next(new CastError('Некорректный ID'));
       } else {
         next(err);
       }
@@ -87,9 +82,6 @@ module.exports.updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Указаны некорректные данные при обновлении аватара'));
-      }
-      if (err.name === 'CastError') {
-        next(new CastError('Некорректный ID'));
       } else {
         next(err);
       }
@@ -116,14 +108,10 @@ module.exports.login = (req, res, next) => {
 
 module.exports.getUser = (req, res, next) => {
   User.findById(req.user._id)
-    .orFail(() => {
-      throw new Error('NotFound');
-    })
+    .orFail(() => new NotFoundError('Нет пользователя с переданным ID'))
     .then((user) => { res.status(200).send({ user }); })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new CastError('Некорректный ID'));
-      } else if (err.message === 'NotFound') {
+      if (err.message === 'NotFound') {
         next(new NotFoundError('Нет пользователя/карточки с переданным ID'));
       } else {
         next(err);

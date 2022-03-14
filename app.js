@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
+const errorHandler = require('./middlewares/error');
 const { validateUser, validateLogin } = require('./middlewares/validations');
 const NotFoundError = require('./errors/NotFoundError');
 const routerUser = require('./routes/users');
@@ -31,5 +32,6 @@ app.use(() => {
 });
 
 app.use(errors());
+app.use(errorHandler);
 
 app.listen(PORT, () => {});
